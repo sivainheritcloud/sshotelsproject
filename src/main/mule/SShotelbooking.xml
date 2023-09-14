@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+    <apikit:config name="SShotelbooking-config" api="SShotelbooking.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="SShotelbooking-main">
+        <http:listener path="/api/*" config-ref="HTTP_Listener_config1">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:body><![CDATA[#[output application/json --- payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="SShotelbooking-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="SShotelbooking-console">
+        <http:listener path="/console/*" config-ref="HTTP_Listener_config1">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="SShotelbooking-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="delete:\RESERVATION\(ID):SShotelbooking-config">
+        <set-variable value="#[attributes.uriParams.ID]" doc:name="Set Variable" doc:id="40ccd50d-bc87-457a-814e-016a064fb62f" variableName="delete" />
+        <db:select doc:name="getting delete_rooms data" doc:id="99d34810-3259-4c22-bf68-2bb9ec41883f" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from delete_rooms where id =:id]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	"id": vars.delete
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="bbf5cca4-8774-485e-b10d-bab8d1fd64e3">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <db:insert doc:name="Insert" doc:id="07d210a4-d960-4c83-8646-b251561ada80" config-ref="Database_Config">
+            <db:sql><![CDATA[insert into hotel_rooms(id,type,capacity,price,isAcRoom) values(:id,:type,:capacity,:price,:isAcRoom)]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	"id": payload[0].id,
+	"type": payload[0]."type",
+	"capacity": payload[0].capacity,
+	"price": payload[0].price,
+	"isAcRoom": payload[0].isAcRoom
+}]]]></db:input-parameters>
+        </db:insert>
+        <db:delete doc:name="Delete from guest_rooms" doc:id="fa38d1c6-a1e0-4286-bb62-c03f3d0cfba7" config-ref="Database_Config">
+            <db:sql><![CDATA[delete from guest_rooms where id= :id]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	"id": vars.delete,
+	
+}]]]></db:input-parameters>
+        </db:delete>
+        <db:delete doc:name="Delete from delete_rooms" doc:id="082594f5-87bf-4698-8e7c-bf8e8e98a350" config-ref="Database_Config">
+            <db:sql><![CDATA[delete from delete_rooms where id = :id]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	"id": vars.delete
+}]]]></db:input-parameters>
+        </db:delete>
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="ID">attributes.uriParams.'ID'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status:"successfully cancelled"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\ROOMS:SShotelbooking-config">
+        <db:select doc:name="Select" doc:id="6453eae1-c278-46a5-b67e-1f5e39657da2" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from hotel_rooms;]]></db:sql>
+        </db:select>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\ROOMS\(ID):SShotelbooking-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="ID">attributes.uriParams.'ID'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "success"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\RESERVATION\(ID):SShotelbooking-config">
+        <db:select doc:name="guests_by_ID" doc:id="b62395c3-795d-4296-9852-ef66adcf0bf1" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from guest_rooms where id= :id]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	"id": attributes.uriParams.ID
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload resource="dwscript/togetguestsbyID.dwl" />
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\RESERVATION:application\json:SShotelbooking-config">
+        <set-variable value="#[{&#xA; &quot;id&quot;: payload.id,&#xA; &quot;guestName&quot;: payload.guestName,&#xA; &quot;guests&quot;: payload.guests,&#xA; &quot;checkInDate&quot;: payload.checkInDate,&#xA; &quot;checkOutDate&quot;: payload.checkOutDate &#xA;}]" doc:name="new Reservation details" doc:id="67e72d5b-fbad-49c8-86bf-150df9edf48f" variableName="postData" />
+        <db:select doc:name="Select" doc:id="46e95e51-0c84-413e-9296-69f27c08e099" config-ref="Database_Config">
+            <db:sql><![CDATA[SELECT * FROM guest_rooms where id = :id]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	"id": vars.postData.id
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="6892aad2-b56f-44a5-adf9-addc9286b88c">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <choice doc:name="Choice" doc:id="52646986-e1c6-4764-8c42-32734905671c">
+            <when expression="#[payload == []]">
+                <db:select doc:name="selecting data from hotel_room to be deleted" doc:id="49b080c8-4c53-4ded-a565-c30811d00011" config-ref="Database_Config">
+                    <db:sql><![CDATA[select * from hotel_rooms where id = :id]]></db:sql>
+                    <db:input-parameters><![CDATA[#[{
+	"id": vars.postData.id
+}]]]></db:input-parameters>
+                </db:select>
+                <db:insert doc:name="deleted Room into delete_rooms table" doc:id="9c4ecaf5-6a78-4125-ae83-805fed36e2ca" config-ref="Database_Config">
+                    <db:sql><![CDATA[insert into delete_rooms(id,type,capacity,price,isAcRoom) values(:id,:type,:capacity,:price,:isAcRoom)]]></db:sql>
+                    <db:input-parameters><![CDATA[#[{
+	id: payload[0].id,
+	"type": payload[0]."type",
+	"capacity": payload[0].capacity,
+	"price": payload[0].price,
+	"isAcRoom": payload[0].isAcRoom
+}]]]></db:input-parameters>
+                </db:insert>
+                <db:delete doc:name="Delete" doc:id="00839659-7dc7-410b-a0ba-9a8fcfb444d9" config-ref="Database_Config">
+                    <db:sql><![CDATA[delete from hotel_rooms where id= :id]]></db:sql>
+                    <db:input-parameters><![CDATA[#[{
+	"id": vars.postData.id
+}]]]></db:input-parameters>
+                </db:delete>
+                <db:insert doc:name="Insert_into_guests" doc:id="4be03b64-f39b-4544-bf47-237ef622a365" config-ref="Database_Config">
+                    <db:sql><![CDATA[insert into guest_rooms(id,guestName,checkInDate,checkOutDate) values(:id,:guestName,:checkInDate,:checkOutDate)]]></db:sql>
+                    <db:input-parameters><![CDATA[#[{
+	"id": vars.postData.id,
+	"guestName": vars.postData.guestName,
+	"guests": vars.postData.guests,
+	"checkInDate": vars.postData.checkInDate,
+	"checkOutDate": vars.postData.checkOutDate
+	}]]]></db:input-parameters>
+                </db:insert>
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <set-payload value="#[&quot;Room Not available&quot;]" doc:name="Set Payload" doc:id="b6901d2c-7bdc-46e4-a2c7-9aa1d2ccf373" />
+            </otherwise>
+        </choice>
+    </flow>
+    <flow name="get:\LOGIN:SShotelbooking-config">
+        <db:select doc:name="Select" doc:id="b702fe47-b630-4439-93a4-d8b770728caf" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from login;]]></db:sql>
+        </db:select>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload resource="dwscript/loginlist.dwl" />
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\REGISTRATION:SShotelbooking-config">
+        <db:select doc:name="getting registration table" doc:id="7f155d50-c3cf-419f-ad3c-3a1f260d0b90" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from registration;]]></db:sql>
+        </db:select>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\LOGIN:application\json:SShotelbooking-config">
+        <set-variable value="#[{&#xA; &quot;Email&quot;: payload.Email,&#xA; &quot;Password&quot;: payload.Password&#xA;}]" doc:name="New login details" doc:id="0ca923e7-6c12-4a6d-834d-0d378fa2116a" variableName="login" />
+        <db:select doc:name="check Email from new login details" doc:id="ccaa4493-0d64-4ba8-9ef5-c6ab52814da1" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from registration where Email = :Email]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	"Email": vars.login.Email
+}]]]></db:input-parameters>
+        </db:select>
+        <choice doc:name="Choice" doc:id="879a2f78-c206-4812-aa0e-f821eb3a69f2">
+            <when expression="#[sizeOf(payload) == 1]">
+                <db:insert doc:name="Inserting into Login Database" doc:id="08c614ed-06aa-4398-ab18-4bd402c0f0a1" config-ref="Database_Config">
+                    <db:sql><![CDATA[insert into login(Email,Password) values(:Email,:Password)]]></db:sql>
+                    <db:input-parameters><![CDATA[#[{
+	"Email": vars.login.Email,
+	"Password": vars.login.Password
+}]]]></db:input-parameters>
+                </db:insert>
+                <set-payload value="#[&quot;login successfully&quot;]" doc:name="Set Payload" doc:id="e226c568-02a1-4f70-af0b-7548c1bcdcf7" />
+            </when>
+            <otherwise>
+                <set-payload value="#[&quot;Invalid Login&quot;]" doc:name="Invalid Credentials" doc:id="f2476081-866c-4026-bc0a-0cc3041975fb" />
+            </otherwise>
+        </choice>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\REGISTRATION:application\json:SShotelbooking-config">
+        <set-variable value="#[{&#xA; &quot;FullName&quot;: payload.Fullname,&#xA;  &quot;Gender&quot;: payload.Gender,&#xA;   &quot;Email&quot;: payload.Email,&#xA; &quot;Password&quot;: payload.Password,&#xA; &quot;PhoneNumber&quot;: payload.Phone&#xA; }]" doc:name="New registration details" doc:id="cdd5ed12-d451-4ac1-b5bc-e3018eccf64f" variableName="Mail" />
+        <db:select doc:name="checking Email from new registration details" doc:id="3d6c7baf-8ae6-43e9-a2a1-969e8a545946" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from registration where Email = :Email;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	"Email": vars.Mail.Email
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="74da8cb0-e853-46c2-a994-333bc9b3ae42">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <choice doc:name="Choice" doc:id="fdbfe2e9-0601-4626-8d46-b55dc9df217c">
+            <when expression="#[payload == []]">
+                <db:insert doc:name="Inserting new registration records into registration table" doc:id="59e8b89d-c65e-451f-be3d-f3c249a9f23a" config-ref="Database_Config">
+                    <db:sql><![CDATA[insert into registration(FullName,Gender,Email,Password,PhoneNumber) values(:Fullname,:Gender,:Email,:Password,:PhoneNumber)]]></db:sql>
+                    <db:input-parameters><![CDATA[#[{
+	"Fullname": vars.Mail.FullName,
+	"Gender": vars.Mail.Gender,
+	"Email": vars.Mail.Email,
+	"Password": vars.Mail.Password,
+	"PhoneNumber": vars.Mail.PhoneNumber
+}]]]></db:input-parameters>
+                </db:insert>
+                <set-payload value="#[&quot;added successfully&quot;]" doc:name="Set Payload" doc:id="0b70d797-a8be-44cc-a956-e687ae4f4628" />
+            </when>
+            <otherwise>
+                <set-payload value="#[&quot;You already have an Account. Please login&quot;]" doc:name="Set Payload" doc:id="b9bccaff-6e6c-4e0f-9f7b-ed9f694fe0ea" />
+            </otherwise>
+        </choice>
+    </flow>
+</mule>

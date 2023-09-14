@@ -1,0 +1,149 @@
+#%RAML 1.0
+title: HotelBooking API
+version: 1.0
+
+/REGISTRATION:
+  get:
+    description: List of registration
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              message: registration list
+  post:
+    description: To make registration
+    body:
+      application/json:
+         properties:
+           Fullname:
+             required: true
+             type: string
+             minLength: 1
+           Gender:
+             required: false
+             type: string
+             minLength: 2
+           Email:
+             required: true
+             type: string
+             minLength: 1
+           Password:
+             required: true
+             type: integer
+             minimum: 2
+           Phone:
+             required: true
+             type: integer
+             minimum: 3
+    responses:
+      201:
+        body:
+          application/json:
+            example:
+              message: Registered successfully
+
+/LOGIN:
+  get:
+    description: Retrive login details
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              message: login's list
+  post:
+    description: To make login
+    body:
+      application/json:
+        properties:
+          Email:
+             required: true
+             type: string
+             minLength: 1
+          Password:
+             required: true
+             type: integer
+             minimum: 2
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              message: login successfully
+
+
+/ROOMS:
+  get:
+    description: Retrieve list of available rooms        
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              message: success 
+  /{ID}:
+    get:
+      description: Retrieve information about specific room
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: success       
+     
+
+/RESERVATION:
+  post:
+    description: Make a new reservation
+    body:
+      application/json:
+        properties:
+          id:
+            required: true
+            type: integer
+            minimum: 1
+          guestName: 
+            required: true
+            type: string
+            minLength: 4
+          guests:
+            required: true
+            type: number  
+          checkInDate:
+            required: true
+            type: date-only
+          checkOutDate:
+            required: true
+            type: string
+    responses:
+       201:
+        body:
+          application/json:
+            example:
+              message: Room boocked successfully
+
+  /{ID}:
+      get:
+        description: Retrieve list of guests rooms
+        responses:
+          200:
+            body:
+              application/json:
+                example:
+                  message: Booked successfully
+      delete:
+       description: Cancellation of booking
+       responses:
+         200:
+          body:
+            application/json:
+              example:
+                message: Cancellation successfully       
+                
+      
+   
+
+             
+                       
+                                               
